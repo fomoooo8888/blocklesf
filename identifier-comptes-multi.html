@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Identifier les comptes (Instagram, TikTok, X)</title>
+<style>
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --ink: #1b2430;
+  --muted: #5b6776;
+  --line: #d3dae2;
+  --accent: #0f6b6b;
+  --accent-ink: #ffffff;
+  --danger: #b42318;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12171d;
+    --surface: #1a2129;
+    --ink: #e8edf2;
+    --muted: #9aa6b4;
+    --line: #2b3540;
+    --accent: #4cc2b8;
+    --accent-ink: #0a1b1a;
+    --danger: #ff8a80;
+    color-scheme: dark;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+main { max-width: 50rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+h1 { margin: 0; font-size: 1.65rem; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }
+h2 { margin: 2rem 0 0.25rem; font-size: 1.2rem; }
+.sub { margin: 0.4rem 0 0.9rem; color: var(--muted); }
+.count { margin: 0.9rem 0 0; font-weight: 600; }
+.bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; margin-top: 0.4rem; }
+.bar > span { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.3s ease; }
+
+.nets { display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; margin: 0.5rem 0 0; }
+.nets label { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 40px; font-weight: 600; cursor: pointer; }
+.nets input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
+
+.rows { list-style: none; margin: 1.5rem 0 0; padding: 0; border-top: 1px solid var(--line); }
+.row { padding: 0.9rem 0; border-bottom: 1px solid var(--line); }
+.name { font-weight: 700; overflow-wrap: anywhere; }
+.note { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.9rem; }
+.plat { display: flex; align-items: center; gap: 0.5rem 0.7rem; flex-wrap: wrap; margin-top: 0.55rem; }
+.pl { flex: 0 0 5.2rem; font-size: 0.95rem; font-weight: 600; color: var(--muted); }
+.plat a { color: var(--accent); font-weight: 600; padding: 0.35rem 0; }
+.plat input[type="text"] {
+  flex: 1 1 11rem; min-width: 0; min-height: 42px; padding: 0 0.8rem;
+  background: var(--surface); color: var(--ink);
+  border: 1.5px solid var(--line); border-radius: 10px;
+  font: inherit;
+}
+.state { font-size: 0.9rem; font-weight: 600; color: var(--muted); }
+.plat.ok .state { color: var(--accent); }
+.plat.bad .state { color: var(--danger); }
+.plat.sug .state { color: var(--ink); }
+.plat.bad input { border-color: var(--danger); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 46px; padding: 0 1.1rem;
+  border-radius: 10px; border: 2px solid transparent;
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.btn.small { min-height: 38px; padding: 0 0.8rem; }
+.btn.solid { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.help { margin: 0 0 0.75rem; color: var(--muted); font-size: 0.95rem; }
+textarea {
+  display: block; width: 100%; min-height: 9rem; padding: 0.8rem;
+  background: var(--surface); color: var(--ink);
+  border: 1.5px solid var(--line); border-radius: 10px;
+  font: inherit; line-height: 1.5; resize: vertical;
+}
+.actions { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.75rem; }
+.add { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1.5rem; }
+.add input {
+  flex: 1 1 11rem; min-width: 0; min-height: 46px; padding: 0 0.8rem;
+  background: var(--surface); color: var(--ink);
+  border: 1.5px solid var(--line); border-radius: 10px; font: inherit;
+}
+.msg { margin: 0.75rem 0 0; min-height: 1.5em; font-size: 0.95rem; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .bar > span { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Identifier les comptes</h1>
+  <p class="sub">Pour chaque nom et chaque réseau : clique sur « Chercher », repère le bon profil (photo, bio, abonnés), puis colle son @ ou son lien dans la case. Un même nom peut désigner des personnes différentes selon le réseau : vérifie chaque profil avant de valider. Quand tu as fini, copie la liste en bas et colle-la dans « Ajout rapide » de l’extension. Tu peux d’abord lancer la recherche automatique, qui pré-remplit ce que Wikidata connaît.</p>
+
+  <fieldset class="nets" style="border:0;padding:0" aria-label="Réseaux à traiter" id="nets"></fieldset>
+
+  <p class="count" id="count"></p>
+  <div class="bar"><span id="fill"></span></div>
+
+  <div class="actions">
+    <button class="btn solid" id="auto" type="button">Chercher automatiquement (Wikidata)</button>
+  </div>
+  <p class="msg" id="autoMsg" role="status" aria-live="polite">Wikidata note l’identifiant de certaines personnalités et organisations sur ces réseaux (la couverture est partielle, surtout pour TikTok et X). Les résultats sont des suggestions : tu les valides une par une.</p>
+
+  <ul class="rows" id="rows"></ul>
+
+  <div class="add">
+    <input type="text" id="newName" placeholder="Ajouter un nom" aria-label="Ajouter un nom">
+    <button class="btn ghost" id="addBtn" type="button">Ajouter</button>
+  </div>
+
+  <h2>Liste prête pour l’extension</h2>
+  <p class="help">Seuls les comptes identifiés et validés apparaissent ici, avec le réseau devant chaque identifiant. À coller dans « Ajout rapide » de l’extension.</p>
+  <textarea id="out" readonly aria-label="Liste des identifiants, tous réseaux"></textarea>
+  <div class="actions" id="copyBtns">
+    <button class="btn solid" id="copyAll" type="button">Copier la liste (tous réseaux)</button>
+  </div>
+  <p class="help" style="margin-top:0.75rem">Ou copie un seul réseau, sans préfixe, pour la zone « Modifier la liste » de ce réseau :</p>
+  <div class="actions" id="copyOne"></div>
+  <div class="actions">
+    <button class="btn ghost" id="reset" type="button">Tout effacer</button>
+  </div>
+  <p class="msg" id="msg" role="status" aria-live="polite"></p>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var KEY = "identifier-multi:v1";
+  var KEYS = ["instagram", "tiktok", "x"];
+
+  // Règles de chaque réseau. « prop » = propriété Wikidata de l'identifiant (vérifiée avant la recherche automatique).
+  var PLATFORMS = {
+    instagram: {
+      label: "Instagram", prop: "P2003", propRe: /instagram/i, google: "instagram.com",
+      fromUrl: /instagram\.com\/([^\/?#\s]+)/i,
+      reserved: ["p", "reel", "reels", "explore", "stories", "accounts", "direct", "tv"],
+      valid: function (t) { return /^[a-z0-9._]{1,30}$/.test(t) && /[a-z0-9_]/.test(t); },
+      profile: function (h) { return "https://www.instagram.com/" + encodeURIComponent(h) + "/"; },
+      native: null
+    },
+    tiktok: {
+      label: "TikTok", prop: "P7085", propRe: /tiktok/i, google: "tiktok.com",
+      fromUrl: /tiktok\.com\/@([^\/?#\s]+)/i,
+      reserved: ["video", "tag", "discover", "foryou", "following", "live", "explore", "upload", "login", "music", "search", "friends", "messages"],
+      valid: function (t) { return /^[a-z0-9._]{2,24}$/.test(t) && t.slice(-1) !== "." && /[a-z0-9_]/.test(t); },
+      profile: function (h) { return "https://www.tiktok.com/@" + encodeURIComponent(h); },
+      native: function (n) { return "https://www.tiktok.com/search/user?q=" + encodeURIComponent(n); }
+    },
+    x: {
+      label: "X", prop: "P2002", propRe: /twitter|\bx\b/i, google: "x.com",
+      fromUrl: /(?:^|[\/.])(?:x|twitter)\.com\/@?([^\/?#\s]+)/i,
+      reserved: ["home", "explore", "notifications", "messages", "i", "search", "settings", "compose", "intent", "share", "hashtag", "login", "signup", "tos", "privacy", "about"],
+      valid: function (t) { return /^[a-z0-9_]{1,15}$/.test(t); },
+      profile: function (h) { return "https://x.com/" + encodeURIComponent(h); },
+      native: function (n) { return "https://x.com/search?q=" + encodeURIComponent(n) + "&f=user"; }
+    }
+  };
+
+  // Identifiants retrouvés dans des sources pour Instagram (à confirmer en ouvrant le profil).
+  var CONFIRMED = { "Marine Le Pen": { instagram: "marine_lepen" }, "Jordan Bardella": { instagram: "jordanbardella" } };
+  // Suggestions de mémoire, non vérifiées : elles s'affichent en grisé dans la case, rien n'est enregistré.
+  var HINTS = {
+    "Emmanuel Macron": { instagram: "emmanuelmacron" },
+    "BFM": { instagram: "bfmtv" },
+    "CNews": { instagram: "cnews" }
+  };
+  var NOTES = {
+    "Jean-Philippe Tanguy": "Orthographe corrigée par rapport à ta liste.",
+    "Bassem": "Prénom seul : précise de qui il s’agit avant de chercher.",
+    "Тртр": "Écrit en caractères cyrilliques : vérifie l’orthographe d’origine.",
+    "Va_plus": "Ressemble déjà à un identifiant : essaie de chercher @va_plus.",
+    "Kalos": "Nom très court : plusieurs comptes peuvent correspondre.",
+    "AD laurent": "Nom incomplet : plusieurs personnes peuvent correspondre.",
+    "Tanguy David": "Nom courant : vérifie la photo et la bio avant de bloquer.",
+    "Jordan florentin": "Nom courant : vérifie la photo et la bio avant de bloquer.",
+    "Louise Montangnon": "Orthographe incertaine : vérifie aussi des variantes.",
+    "Liam Di Benedetto": "Peut être un compte privé ou un pseudo : vérifie avant de bloquer.",
+    "Benjamin Attal": "Nom courant : vérifie la photo et la bio avant de bloquer.",
+    "Milafique": "Pseudo : vérifie que le compte correspond bien à la personne visée."
+  };
+
+  var NAMES = [
+    "Marine Le Pen", "Jordan Bardella", "Eric Zemmour", "Marion Maréchal", "Sarah Knafo", "Éric Ciotti",
+    "Bruno Retailleau", "Pascal Praud", "Laurent Jacobelli", "Jean-Philippe Tanguy", "Cyril Hanouna",
+    "Damien Rieu", "Milafique", "Jean Messiha", "Rachel Khan", "David Lisnar", "Emmanuel Macron",
+    "Benjamin Attal", "Papacito", "Bassem", "Louise Montangnon", "Jordan florentin", "AD laurent",
+    "Tanguy David", "Gérald Darmanin", "Liam Di Benedetto", "Alice Cordier", "Alex Hitchen",
+    "Rassemblement national", "Frontières", "CNews", "BFM", "Reconquête", "Тртр", "Les républicains",
+    "Horizons", "UDR", "Patriotes Europe", "Valeurs actuelles", "Va_plus", "Collectif némésis", "Kalos"
+  ];
+
+  var rows = []; // { name, h:{réseau:identifiant}, sug:{réseau:bool}, desc:{réseau:texte} }
+  var enabled = { instagram: true, tiktok: true, x: true };
+  var busy = false;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function emptyMap(v) { var o = {}; KEYS.forEach(function (k) { o[k] = v; }); return o; }
+  function newRow(name, known) {
+    var r = { name: name, h: emptyMap(""), sug: emptyMap(false), desc: emptyMap("") };
+    if (known) KEYS.forEach(function (k) { if (known[k]) r.h[k] = known[k]; });
+    return r;
+  }
+  function initialRows() { return NAMES.map(function (n) { return newRow(n, CONFIRMED[n]); }); }
+
+  function normalize(k, v) {
+    var P = PLATFORMS[k];
+    var t = String(v || "").trim();
+    if (!t) return { empty: true };
+    var m = t.match(P.fromUrl);
+    if (m) t = m[1];
+    t = t.replace(/^@+/, "").toLowerCase();
+    if (P.valid(t) && P.reserved.indexOf(t) === -1) return { ok: true, handle: t };
+    return { bad: true };
+  }
+
+  function plain(s) {
+    return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ rows: rows, enabled: enabled })); } catch (e) { /* stockage indisponible */ }
+  }
+  function load() {
+    var raw = null;
+    try { raw = localStorage.getItem(KEY); } catch (e) { raw = null; }
+    if (raw) {
+      try {
+        var s = JSON.parse(raw);
+        if (s && Array.isArray(s.rows)) {
+          rows = s.rows.filter(function (r) { return r && typeof r.name === "string"; }).map(function (r) {
+            var o = newRow(r.name);
+            KEYS.forEach(function (k) {
+              o.h[k] = r.h && typeof r.h[k] === "string" ? r.h[k] : "";
+              o.sug[k] = !!(r.sug && r.sug[k]);
+              o.desc[k] = r.desc && typeof r.desc[k] === "string" ? r.desc[k] : "";
+            });
+            return o;
+          });
+          if (s.enabled) KEYS.forEach(function (k) { enabled[k] = s.enabled[k] !== false; });
+          if (rows.length) return;
+        }
+      } catch (e) { /* on repart de la liste initiale */ }
+    }
+    rows = initialRows();
+  }
+
+  function googleUrl(k, name) {
+    return "https://www.google.com/search?q=" + encodeURIComponent("site:" + PLATFORMS[k].google + ' "' + name + '"');
+  }
+
+  /* ---------- Recherche automatique via Wikidata ---------- */
+
+  function pause(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  var API = "https://www.wikidata.org/w/api.php?";
+
+  // Vérifie que chaque propriété porte bien le nom du réseau avant de s'en servir.
+  async function checkProps() {
+    var ids = KEYS.map(function (k) { return PLATFORMS[k].prop; }).join("|");
+    var q = new URLSearchParams({ action: "wbgetentities", ids: ids, props: "labels", languages: "en|fr", format: "json", origin: "*" });
+    var r = await fetch(API + q.toString());
+    if (!r.ok) throw new Error("Wikidata " + r.status);
+    var j = await r.json();
+    var ok = {};
+    KEYS.forEach(function (k) {
+      var e = j.entities && j.entities[PLATFORMS[k].prop];
+      var labs = e && e.labels ? Object.keys(e.labels).map(function (l) { return e.labels[l].value; }).join(" ") : "";
+      ok[k] = PLATFORMS[k].propRe.test(labs);
+    });
+    return ok;
+  }
+
+  async function wikidata(name, okMap) {
+    var q1 = new URLSearchParams({
+      action: "wbsearchentities", search: name, language: "fr", uselang: "fr",
+      type: "item", limit: "8", format: "json", origin: "*"
+    });
+    var r1 = await fetch(API + q1.toString());
+    if (!r1.ok) throw new Error("Wikidata " + r1.status);
+    var j1 = await r1.json();
+    var found = j1.search || [];
+    if (!found.length) return {};
+
+    var q2 = new URLSearchParams({
+      action: "wbgetentities", ids: found.map(function (x) { return x.id; }).join("|"),
+      props: "claims", format: "json", origin: "*"
+    });
+    var r2 = await fetch(API + q2.toString());
+    if (!r2.ok) throw new Error("Wikidata " + r2.status);
+    var j2 = await r2.json();
+
+    var want = plain(name);
+    var res = {};
+    for (var i = 0; i < found.length; i++) {
+      var f = found[i];
+      var e = j2.entities && j2.entities[f.id];
+      if (!e || !e.claims) continue;
+      var exact = plain(f.label) === want;
+      for (var n = 0; n < KEYS.length; n++) {
+        var k = KEYS[n];
+        if (!okMap[k] || !enabled[k]) continue;
+        var claims = e.claims[PLATFORMS[k].prop];
+        if (!claims || !claims.length) continue;
+        var usable = claims.filter(function (c) { return c.rank !== "deprecated"; });
+        var pick = usable.find(function (c) { return c.rank === "preferred"; }) || usable[0];
+        var val = pick && pick.mainsnak && pick.mainsnak.datavalue && pick.mainsnak.datavalue.value;
+        if (typeof val !== "string" || !normalize(k, val).ok) continue;
+        var cand = {
+          handle: normalize(k, val).handle,
+          desc: (f.label || "") + (f.description ? " — " + f.description : "") + (exact ? " (nom exact)" : " (nom proche)"),
+          exact: exact
+        };
+        if (!res[k] || (exact && !res[k].exact)) res[k] = cand;
+      }
+    }
+    return res;
+  }
+
+  async function autoSearch() {
+    if (busy) return;
+    busy = true;
+    $("auto").disabled = true;
+    var found = 0;
+    try {
+      var okMap = await checkProps();
+      var skipped = KEYS.filter(function (k) { return enabled[k] && !okMap[k]; });
+      var usable = KEYS.filter(function (k) { return enabled[k] && okMap[k]; });
+      if (!usable.length) {
+        $("autoMsg").textContent = "Wikidata ne propose pas de propriété exploitable pour les réseaux cochés : recherche automatique annulée. Utilise « Chercher » à la main.";
+        busy = false;
+        $("auto").disabled = false;
+        return;
+      }
+      var todo = [];
+      rows.forEach(function (r, i) {
+        var need = usable.some(function (k) { return !String(r.h[k]).trim(); });
+        if (need && plain(r.name)) todo.push(i);
+      });
+      for (var t = 0; t < todo.length; t++) {
+        var i = todo[t];
+        $("autoMsg").textContent = "Recherche " + (t + 1) + "/" + todo.length + " : " + rows[i].name;
+        var res = await wikidata(rows[i].name, okMap);
+        var any = false;
+        usable.forEach(function (k) {
+          if (res[k] && !String(rows[i].h[k]).trim()) {
+            rows[i].h[k] = res[k].handle;
+            rows[i].sug[k] = true;
+            rows[i].desc[k] = res[k].desc;
+            any = true;
+          }
+        });
+        if (any) { found++; save(); render(); }
+        await pause(250);
+      }
+      $("autoMsg").textContent = found + " nom" + (found > 1 ? "s" : "") + " avec suggestion sur " + todo.length +
+        " recherches. Vérifie chaque profil puis clique sur « Valider »." +
+        (skipped.length ? " Réseaux ignorés (propriété Wikidata non reconnue) : " + skipped.map(function (k) { return PLATFORMS[k].label; }).join(", ") + "." : "");
+    } catch (e) {
+      $("autoMsg").textContent = "Recherche interrompue : Wikidata est injoignable depuis cette page (réseau ou blocage).";
+    }
+    busy = false;
+    $("auto").disabled = false;
+  }
+
+  /* ---------- Affichage ---------- */
+
+  function renderOut() {
+    var lines = [];
+    var per = emptyMap(0);
+    var pending = emptyMap(0);
+    var bare = {};
+    KEYS.forEach(function (k) { bare[k] = []; });
+    rows.forEach(function (r) {
+      KEYS.forEach(function (k) {
+        if (!enabled[k]) return;
+        var n = normalize(k, r.h[k]);
+        if (!n.ok) return;
+        if (r.sug[k]) { pending[k]++; return; }
+        if (bare[k].indexOf(n.handle) === -1) bare[k].push(n.handle);
+      });
+    });
+    KEYS.forEach(function (k) {
+      bare[k].forEach(function (h) { lines.push(k + ":" + h); });
+      per[k] = bare[k].length;
+    });
+    $("out").value = lines.join("\n");
+    $("out").dataset.bare = JSON.stringify(bare);
+
+    var parts = [];
+    var total = 0;
+    var pend = 0;
+    KEYS.forEach(function (k) {
+      if (!enabled[k]) return;
+      parts.push(PLATFORMS[k].label + " " + per[k]);
+      total += per[k];
+      pend += pending[k];
+    });
+    $("count").textContent = parts.length
+      ? parts.join(", ") + " identifié" + (total > 1 ? "s" : "") + " sur " + rows.length + " noms" + (pend ? " (" + pend + " à confirmer)" : "")
+      : "Coche au moins un réseau.";
+    var slots = rows.length * parts.length;
+    $("fill").style.width = slots ? (total / slots) * 100 + "%" : "0%";
+    Array.prototype.forEach.call($("copyOne").querySelectorAll("button"), function (b) {
+      b.disabled = !bare[b.dataset.k].length;
+    });
+    $("copyAll").disabled = !lines.length;
+  }
+
+  function render() {
+    var ul = $("rows");
+    ul.textContent = "";
+    rows.forEach(function (row, idx) {
+      var li = document.createElement("li");
+      li.className = "row";
+
+      var name = document.createElement("div");
+      name.className = "name";
+      name.textContent = row.name;
+      li.appendChild(name);
+      if (NOTES[row.name]) {
+        var note = document.createElement("p");
+        note.className = "note";
+        note.textContent = NOTES[row.name];
+        li.appendChild(note);
+      }
+
+      KEYS.forEach(function (k) {
+        if (!enabled[k]) return;
+        var P = PLATFORMS[k];
+        var line = document.createElement("div");
+
+        var pl = document.createElement("span");
+        pl.className = "pl";
+        pl.textContent = P.label;
+
+        var search = document.createElement("a");
+        search.href = googleUrl(k, row.name);
+        search.target = "_blank";
+        search.rel = "noopener noreferrer";
+        search.textContent = "Chercher";
+        search.setAttribute("aria-label", "Chercher " + row.name + " sur " + P.label + " via Google");
+
+        var nat = null;
+        if (P.native) {
+          nat = document.createElement("a");
+          nat.href = P.native(row.name);
+          nat.target = "_blank";
+          nat.rel = "noopener noreferrer";
+          nat.textContent = "Sur " + P.label;
+          nat.setAttribute("aria-label", "Chercher " + row.name + " directement sur " + P.label);
+        }
+
+        var input = document.createElement("input");
+        input.type = "text";
+        input.value = row.h[k];
+        input.spellcheck = false;
+        input.autocapitalize = "off";
+        input.setAttribute("autocomplete", "off");
+        input.setAttribute("aria-label", "Identifiant " + P.label + " de " + row.name);
+        var hint = HINTS[row.name] && HINTS[row.name][k];
+        input.placeholder = hint ? "suggestion à vérifier : @" + hint : "@identifiant ou lien du profil";
+
+        var open = document.createElement("a");
+        open.target = "_blank";
+        open.rel = "noopener noreferrer";
+        open.textContent = "Vérifier le profil";
+
+        var validate = document.createElement("button");
+        validate.type = "button";
+        validate.className = "btn solid small";
+        validate.textContent = "Valider";
+        validate.setAttribute("aria-label", "Valider l’identifiant " + P.label + " de " + row.name);
+        validate.addEventListener("click", function () {
+          rows[idx].sug[k] = false;
+          save();
+          render();
+        });
+
+        var st = document.createElement("span");
+        st.className = "state";
+
+        function refresh() {
+          var n = normalize(k, rows[idx].h[k]);
+          var cls = "plat";
+          var txt = "À identifier";
+          if (n.ok && rows[idx].sug[k]) { cls += " sug"; txt = "À confirmer"; }
+          else if (n.ok) { cls += " ok"; txt = "Identifié"; }
+          else if (n.bad) { cls += " bad"; txt = "Identifiant invalide"; }
+          line.className = cls;
+          st.textContent = txt + (rows[idx].sug[k] && rows[idx].desc[k] ? " (Wikidata : " + rows[idx].desc[k] + ")" : "");
+          if (n.ok) { open.href = P.profile(n.handle); open.hidden = false; } else { open.hidden = true; }
+          validate.hidden = !(n.ok && rows[idx].sug[k]);
+        }
+
+        input.addEventListener("input", function () {
+          rows[idx].h[k] = input.value;
+          rows[idx].sug[k] = false;
+          rows[idx].desc[k] = "";
+          refresh();
+          save();
+          renderOut();
+        });
+        input.addEventListener("blur", function () {
+          var n = normalize(k, input.value);
+          if (n.ok) { input.value = "@" + n.handle; rows[idx].h[k] = n.handle; save(); renderOut(); }
+        });
+
+        line.appendChild(pl);
+        line.appendChild(search);
+        if (nat) line.appendChild(nat);
+        line.appendChild(input);
+        line.appendChild(open);
+        line.appendChild(validate);
+        line.appendChild(st);
+        li.appendChild(line);
+
+        var shown = normalize(k, row.h[k]);
+        if (shown.ok) input.value = "@" + shown.handle;
+        refresh();
+      });
+      ul.appendChild(li);
+    });
+    renderOut();
+  }
+
+  function buildNets() {
+    var host = $("nets");
+    KEYS.forEach(function (k) {
+      var label = document.createElement("label");
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = enabled[k];
+      cb.addEventListener("change", function () {
+        enabled[k] = cb.checked;
+        save();
+        render();
+      });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(PLATFORMS[k].label));
+      host.appendChild(label);
+    });
+  }
+
+  function buildCopyButtons() {
+    KEYS.forEach(function (k) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn ghost small";
+      b.dataset.k = k;
+      b.textContent = "Copier " + PLATFORMS[k].label + " seul";
+      b.addEventListener("click", function () {
+        var bare = JSON.parse($("out").dataset.bare || "{}");
+        copyText((bare[k] || []).map(function (h) { return "@" + h; }).join("\n"));
+      });
+      $("copyOne").appendChild(b);
+    });
+  }
+
+  function copyText(text) {
+    if (!text) { $("msg").textContent = "Rien à copier pour l’instant : identifie et valide au moins un compte."; return; }
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      $("msg").textContent = ok ? "Liste copiée." : "Sélectionne le texte de la zone « Liste prête » et copie-le à la main.";
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { $("msg").textContent = "Liste copiée."; }, fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  $("auto").addEventListener("click", autoSearch);
+  $("copyAll").addEventListener("click", function () { copyText($("out").value); });
+
+  $("addBtn").addEventListener("click", function () {
+    var v = $("newName").value.trim();
+    if (!v) return;
+    rows.push(newRow(v));
+    $("newName").value = "";
+    save();
+    render();
+  });
+  $("newName").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") $("addBtn").click();
+  });
+
+  var resetTimer = null;
+  $("reset").addEventListener("click", function () {
+    var btn = $("reset");
+    if (resetTimer === null) {
+      btn.textContent = "Confirmer : tout effacer";
+      resetTimer = setTimeout(function () { btn.textContent = "Tout effacer"; resetTimer = null; }, 4000);
+      return;
+    }
+    clearTimeout(resetTimer);
+    resetTimer = null;
+    btn.textContent = "Tout effacer";
+    rows = initialRows();
+    save();
+    render();
+    $("msg").textContent = "Liste réinitialisée.";
+  });
+
+  load();
+  buildNets();
+  buildCopyButtons();
+  render();
+})();
+</script>
+</body>
+</html>

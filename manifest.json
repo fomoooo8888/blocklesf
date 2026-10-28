@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Blocage par liste (Instagram, TikTok, X)",
+  "description": "Bloque une liste de comptes sur Instagram, TikTok et X, à son rythme, depuis tes sessions déjà connectées. X utilise l'API interne du site pour plus de fiabilité ; TikTok et Instagram cliquent les boutons. Les réseaux où tu n'es pas connecté sont ignorés.",
+  "version": "1.1",
+  "permissions": [
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.instagram.com/*",
+    "https://www.tiktok.com/*",
+    "https://x.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Ouvrir le blocage par liste",
+    "default_icon": {
+      "16": "images/logo16.png",
+      "48": "images/logo48.png",
+      "128": "images/logo128.png"
+    }
+  },
+  "icons": {
+    "16": "images/logo16.png",
+    "48": "images/logo48.png",
+    "128": "images/logo128.png"
+  }
+}

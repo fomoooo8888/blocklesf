@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blocage par liste</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="status">
+      <h1>Blocage par liste</h1>
+      <p class="line" id="line" role="status" aria-live="polite">Prêt.</p>
+    </div>
+    <div class="progress">
+      <div class="bar" id="bar" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span id="fill"></span></div>
+      <p class="count" id="count"></p>
+    </div>
+    <div class="controls">
+      <button class="btn solid" id="start" type="button">Lancer le blocage</button>
+      <button class="btn ghost" id="stop" type="button" hidden>Arrêter après ce compte</button>
+    </div>
+  </header>
+  <p class="note">Coche les réseaux où tu es connecté dans Chrome : un réseau non connecté est ignoré. Pendant l’exécution, ne ferme pas et ne minimise pas la fenêtre qui s’ouvre. Les réseaux sont traités à tour de rôle.</p>
+
+  <div id="networks" class="networks"></div>
+
+  <footer class="tools">
+    <details class="tool">
+      <summary>Ajout rapide</summary>
+      <div class="panel">
+        <p>Colle des comptes de plusieurs réseaux d’un coup, par exemple la liste copiée depuis « Identifier les comptes ». Chaque ligne est un lien de profil, ou porte le réseau devant : <code>instagram:nom</code>, <code>tiktok:nom</code>, <code>x:nom</code>.</p>
+        <textarea id="qa" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Ajout rapide de comptes" placeholder="instagram:compte_un&#10;tiktok:compte_deux&#10;x:compte_trois&#10;https://x.com/compte_quatre"></textarea>
+        <div class="actions">
+          <button class="btn solid" id="qaAdd" type="button">Ajouter aux listes</button>
+        </div>
+        <p class="msg" id="qaMsg" role="status" aria-live="polite"></p>
+      </div>
+    </details>
+
+    <details class="tool">
+      <summary>Réglages</summary>
+      <div class="panel">
+        <p>Pause aléatoire entre deux blocages <strong>d’un même réseau</strong>, en secondes. Les réseaux sont alternés, donc le temps total reste court. Plus c’est lent, moins c’est risqué pour tes comptes.</p>
+        <div class="fields">
+          <label>Minimum <input type="number" id="min" min="15" max="600" step="1"></label>
+          <label>Maximum <input type="number" id="max" min="15" max="600" step="1"></label>
+        </div>
+      </div>
+    </details>
+
+    <details class="tool">
+      <summary>Journal</summary>
+      <div class="panel">
+        <pre class="log" id="log" aria-live="off"></pre>
+      </div>
+    </details>
+  </footer>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
